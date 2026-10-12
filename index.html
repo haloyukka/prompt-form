@@ -213,6 +213,57 @@ mark.unfilled { background: var(--mark-bg); color: var(--mark-ink); border-radiu
 .empty p { color: var(--muted); margin: 0 0 20px; }
 .empty-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 
+/* ===== Screen tabs ===== */
+.screen-tabs {
+  display: inline-flex; gap: 4px; margin-bottom: 14px;
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 4px;
+}
+.screen-tabs button { border: 0; background: transparent; padding: 6px 16px; }
+.screen-tabs button[aria-selected="true"] { background: var(--surface); box-shadow: var(--shadow); font-weight: 600; color: var(--accent); }
+
+/* ===== Playground ===== */
+.play-lead { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+.play-lead code { font-family: var(--mono); font-size: 13px; background: var(--accent-soft); color: var(--accent); border-radius: 4px; padding: 0 4px; }
+.play-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px) minmax(0, 1fr);
+  grid-template-areas: "src form preview" "src form copy";
+  grid-template-rows: auto 1fr;
+  gap: 12px 16px;
+  align-items: start;
+}
+.src-panel { grid-area: src; }
+.play-form-panel { grid-area: form; }
+.play-preview-panel { grid-area: preview; }
+.play-copy-bar { grid-area: copy; display: flex; align-items: center; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+#playMissing { margin: 0; flex: 1 1 100%; font-size: 13px; color: var(--muted); text-align: right; }
+#btnPlayCopy { padding: 10px 28px; font-size: 15px; }
+.panel-head { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+.panel-head h2 { margin: 0; flex: 1; }
+.step { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-size: 12px; margin-right: 6px; vertical-align: 1px; }
+.src-editor {
+  font-family: var(--mono); font-size: 13.5px;
+  min-height: calc(100vh - 300px);
+  white-space: pre-wrap;
+}
+.panel-help { font-size: 12.5px; color: var(--muted); margin: 0 0 8px; }
+.field-label .type-select {
+  margin-left: auto; width: auto; min-height: 0; padding: 2px 6px;
+  font-size: 12.5px; font-weight: 400; color: var(--muted);
+}
+.field-label .field-name { overflow: hidden; text-overflow: ellipsis; }
+.field-extra { margin-top: 6px; display: flex; flex-direction: column; gap: 3px; }
+.field-extra .vlabel { font-weight: 400; }
+#playPreview { min-height: 260px; max-height: calc(100vh - 290px); }
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .play-grid {
+    grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+    grid-template-areas: "src src" "form preview" "form copy";
+  }
+  .src-editor { min-height: 200px; }
+}
+
 /* ===== Edit screen ===== */
 .edit-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
 .edit-bar .title-input { flex: 1; font-size: 16px; font-weight: 600; }
@@ -230,7 +281,7 @@ mark.unfilled { background: var(--mark-bg); color: var(--mark-ink); border-radiu
   white-space: pre-wrap;
 }
 .editor-help { font-size: 13px; color: var(--muted); margin: -4px 0 10px; }
-.editor-help code, .var-name, .token-list code {
+.editor-help code, .panel-help code, .var-name, .token-list code {
   font-family: var(--mono); font-size: 12.5px;
   background: var(--surface-2); border: 1px solid var(--border);
   border-radius: 4px; padding: 0 4px;
@@ -361,6 +412,23 @@ dialog::backdrop { background: rgba(10, 12, 18, .45); }
     padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
   }
   #missingMsg { text-align: left; }
+  .screen-tabs { display: flex; margin-bottom: 10px; }
+  .screen-tabs button { flex: 1; padding: 6px 8px; }
+  .play-lead { font-size: 13px; margin-bottom: 10px; }
+  .play-grid { display: block; }
+  .play-grid.tab-src .play-form-panel, .play-grid.tab-src .play-preview-panel,
+  .play-grid.tab-form .src-panel, .play-grid.tab-form .play-preview-panel,
+  .play-grid.tab-preview .src-panel, .play-grid.tab-preview .play-form-panel { display: none; }
+  .play-copy-bar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 15;
+    background: var(--surface); border-top: 1px solid var(--border);
+    padding: 8px 12px calc(10px + env(safe-area-inset-bottom));
+  }
+  #playMissing { text-align: left; font-size: 12px; }
+  #btnPlayCopy { flex: 1; }
+  .src-editor { min-height: 50vh; }
+  #playPreview { max-height: none; min-height: 50vh; }
+  main.playing { padding-bottom: calc(118px + env(safe-area-inset-bottom)); }
   .preview { max-height: none; min-height: 55vh; }
   #toasts { bottom: calc(84px + env(safe-area-inset-bottom)); }
   .edit-bar { flex-wrap: wrap; }
@@ -391,7 +459,53 @@ dialog::backdrop { background: rgba(10, 12, 18, .45); }
 </header>
 
 <main id="main">
-  <section id="useScreen">
+  <div class="screen-tabs" id="screenTabs" role="tablist" aria-label="画面の切り替え">
+    <button type="button" role="tab" data-screen="play">プレイグラウンド</button>
+    <button type="button" role="tab" data-screen="use">マイテンプレート</button>
+  </div>
+
+  <section id="playScreen" hidden>
+    <p class="play-lead"><code>{{変数名}}</code> を含むプロンプトを貼り付けると、入力フォームがその場でできます。入力すると、値が差し込まれたプロンプトが完成します。ここでの内容は保存されません。</p>
+
+    <div class="mobile-tabs" id="playTabs" role="tablist">
+      <button type="button" role="tab" data-ptab="src">貼り付け</button>
+      <button type="button" role="tab" data-ptab="form">入力</button>
+      <button type="button" role="tab" data-ptab="preview">プレビュー</button>
+    </div>
+
+    <div class="play-grid tab-src" id="playGrid">
+      <section class="panel src-panel" aria-labelledby="srcTitle">
+        <div class="panel-head">
+          <h2 id="srcTitle"><span class="step">1</span>プロンプトを貼り付け</h2>
+          <button type="button" class="small ghost" id="btnPlaySample">サンプルに戻す</button>
+          <button type="button" class="small ghost" id="btnPlayClear">クリア</button>
+        </div>
+        <p class="panel-help">入力欄にしたい箇所を <code>{{変数名}}</code> と書きます。同じ名前は1つの入力欄にまとまります。</p>
+        <textarea id="playSrc" class="src-editor" spellcheck="false" aria-label="プロンプト" placeholder="ここにプロンプトを貼り付けます。&#10;例）{{相手}}さんへの返信を{{口調}}で書いてください。"></textarea>
+        <div id="playWarnings"></div>
+      </section>
+      <section class="panel play-form-panel" aria-labelledby="playFormTitle">
+        <div class="panel-head"><h2 id="playFormTitle"><span class="step">2</span>入力</h2></div>
+        <p class="panel-help">右上で入力欄の種類（日付・選択肢など）を変えられます。</p>
+        <form id="playForm" autocomplete="off" novalidate></form>
+      </section>
+      <section class="panel play-preview-panel" aria-labelledby="playPreviewTitle">
+        <div class="preview-head">
+          <h2 id="playPreviewTitle"><span class="step">3</span>できあがり</h2>
+          <span class="spacer"></span>
+          <span id="playCharCount" class="muted small"></span>
+        </div>
+        <div id="playPreview" class="preview" aria-live="off" aria-label="生成されたプロンプト"></div>
+      </section>
+      <div class="play-copy-bar">
+        <p id="playMissing" aria-live="polite"></p>
+        <button type="button" id="btnPlaySave">テンプレートとして保存</button>
+        <button type="button" class="primary" id="btnPlayCopy">コピー</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="useScreen" hidden>
     <div id="emptyState" class="empty" hidden>
       <h2>テンプレートがまだありません</h2>
       <p>プロンプトの中で入力欄にしたい箇所を <code>{{変数名}}</code> と書くと、入力フォームが自動で作られます。</p>
@@ -759,7 +873,11 @@ const state = {
   locked: false,
   lockedText: '',
   mobileTab: 'form',
-  screen: 'use',
+  screen: 'play',
+  returnTo: 'use',
+  play: { body: '', variables: [], values: {} },
+  playTab: 'src',
+  playSig: '',
   draft: null,
   draftDirty: false,
   quotaWarned: false,
@@ -932,7 +1050,7 @@ function renderUse() {
   $('#emptyState').hidden = has;
   $('#useGrid').hidden = !has;
   $('#mobileTabs').hidden = !has;
-  $('#headerMain').hidden = !has;
+  $('#headerMain').hidden = !has || state.screen !== 'use';
   $('#btnEdit').disabled = !has;
   renderTemplateSelect();
   if (has) {
@@ -969,12 +1087,16 @@ function renderForm() {
   vars.forEach((v, i) => form.append(fieldFor(v, `f${i}`)));
 }
 
-function fieldFor(v, id) {
+/**
+ * 入力欄を1つ作る。ctx を渡すとプレイグラウンド用（値の置き場所・更新処理・見出し横の部品・欄の下の部品を差し替え）
+ */
+function fieldFor(v, id, ctx) {
   const label = v.label || v.name;
-  const val = state.values[v.name];
+  const values = ctx ? ctx.values : state.values;
+  const val = values[v.name];
   const set = x => {
-    state.values[v.name] = x;
-    renderPreview();
+    values[v.name] = x;
+    if (ctx) ctx.onChange(); else renderPreview();
   };
   const ph = v.placeholder || null;
   let control;
@@ -1015,11 +1137,22 @@ function fieldFor(v, id) {
       control = h('input', { type: 'text', id, placeholder: ph, value: str(val), oninput: e => set(e.target.value) });
   }
   const showReq = v.required && v.type !== 'checkbox';
-  return h('div', { class: 'field', 'data-var': v.name },
-    v.type === 'checkbox'
+  let head;
+  if (ctx && ctx.head) {
+    head = h('div', { class: 'field-label' },
+      v.type === 'checkbox'
+        ? h('span', { class: 'field-name', text: label })
+        : h('label', { class: 'field-name', for: id, text: label }),
+      ctx.head);
+  } else {
+    head = v.type === 'checkbox'
       ? h('div', { class: 'field-label', text: label })
-      : h('label', { class: 'field-label', for: id }, label, showReq ? h('span', { class: 'req', text: '必須' }) : null),
+      : h('label', { class: 'field-label', for: id }, label, showReq ? h('span', { class: 'req', text: '必須' }) : null);
+  }
+  return h('div', { class: 'field', 'data-var': v.name },
+    head,
     control,
+    ctx && ctx.extra ? ctx.extra : null,
     v.help ? h('p', { class: 'help', text: v.help }) : null);
 }
 
@@ -1173,7 +1306,11 @@ function renderListDrawer(body) {
     return h('li', { class: 'item' + (t.id === state.currentId ? ' active' : '') },
       h('button', {
         type: 'button', class: 'item-main',
-        onclick: async () => { if (await switchTemplate(t.id)) closeDrawer(); },
+        onclick: async () => {
+          if (!await switchTemplate(t.id)) return;
+          goScreen('use');
+          closeDrawer();
+        },
       },
         h('div', { class: 'item-title' }, t.name, t.id === state.currentId ? h('span', { class: 'badge badge-muted', text: '使用中' }) : null),
         h('div', { class: 'item-meta', text: `入力欄 ${usedCount}個 ・ 更新 ${formatDateTime(t.updatedAt)}` })),
@@ -1275,6 +1412,7 @@ async function restoreValues(item) {
     const ok = await confirmDialog('手直ししたプレビューの内容は破棄されます。入力値を復元しますか？', { ok: '復元' });
     if (!ok) return;
   }
+  goScreen('use');
   openTemplate(item.templateId, item.values);
   state.mobileTab = 'form';
   applyMobileTab();
@@ -1452,20 +1590,33 @@ async function importFromFile() {
  * ======================================================= */
 function showScreen(name) {
   state.screen = name;
+  $('#playScreen').hidden = name !== 'play';
   $('#useScreen').hidden = name !== 'use';
   $('#editScreen').hidden = name !== 'edit';
+  $('#screenTabs').hidden = name === 'edit';
+  for (const b of document.querySelectorAll('#screenTabs [data-screen]')) {
+    b.setAttribute('aria-selected', String(b.dataset.screen === name));
+  }
   $('#headerEdit').hidden = name !== 'edit';
   $('#headerActions').hidden = name === 'edit';
+  $('#headerMain').hidden = name !== 'use' || state.templates.length === 0;
+  $('#btnEdit').hidden = name !== 'use';
   $('#main').classList.toggle('editing', name === 'edit');
-  if (name === 'edit') $('#headerMain').hidden = true;
+  $('#main').classList.toggle('playing', name === 'play');
   window.scrollTo(0, 0);
 }
 
-function openEditor(id) {
+/** preset を渡すと、その本文・変数設定で新規作成を始める（プレイグラウンドからの保存 F-66） */
+function openEditor(id, preset) {
   const base = id ? state.templates.find(t => t.id === id) : null;
   state.draft = base ? clone(base) : { id: null, name: '', body: '', variables: [] };
+  if (!base && preset) {
+    state.draft.body = preset.body;
+    state.draft.variables = clone(preset.variables);
+  }
   state.draft._renames = {};
-  state.draftDirty = false;
+  state.draftDirty = !base && !!preset;
+  if (state.screen !== 'edit') state.returnTo = state.screen;
   showScreen('edit');
   renderEditor();
   if (!base) $('.title-input').focus();
@@ -1783,8 +1934,9 @@ async function cancelEdit() {
   }
   state.draftDirty = false;
   state.draft = null;
-  showScreen('use');
-  renderUse();
+  const back = state.returnTo === 'play' ? 'play' : 'use';
+  showScreen(back);
+  if (back === 'play') renderPlay(); else renderUse();
 }
 
 async function deleteFromEditor() {
@@ -1861,9 +2013,238 @@ function sampleTemplate() {
 function addSample() {
   const t = sampleTemplate();
   addTemplates([t]);
+  goScreen('use');
   openTemplate(t.id);
   refreshDrawer();
   toast(`「${t.name}」を追加しました`);
+}
+
+/* =========================================================
+ * プレイグラウンド（3.8 / F-61〜F-68）
+ * 内容は localStorage に保存しない
+ * ======================================================= */
+const PLAY_SAMPLE_BODY = `あなたはメールの返信を手伝うアシスタントです。
+次の条件で、{{相手}}さんへの返信メールの下書きを書いてください。
+
+## 受け取ったメール
+{{受け取ったメール}}
+
+## 伝えたいこと
+{{伝えたいこと}}
+
+## 条件
+- 口調: {{口調}}
+- 長さ: {{文字数}}字程度
+- 返信日: {{返信日}}
+- 冒頭は「{{相手}}さん」で始め、最後に署名「{{自分の名前}}」を入れる
+`;
+
+function playSampleVariables() {
+  const v = (name, order, o) => Object.assign(newVar(name, order), o || {});
+  return [
+    v('相手', 1, { placeholder: '例：山田' }),
+    v('受け取ったメール', 2, { type: 'textarea', placeholder: '返信したいメールを貼り付け' }),
+    v('伝えたいこと', 3, { type: 'textarea', placeholder: '例：日程はOK、資料は金曜までに送る' }),
+    v('口調', 4, { type: 'select', default: '丁寧', options: { choices: ['丁寧', 'やわらかめ', 'カジュアル'] } }),
+    v('文字数', 5, { type: 'number', default: '300', options: { min: '50', max: '2000' } }),
+    v('返信日', 6, { type: 'date', default: 'today', options: { format: 'YYYY年M月D日（ddd）' } }),
+    v('自分の名前', 7),
+  ];
+}
+
+function loadPlaySample() {
+  const p = state.play;
+  p.body = PLAY_SAMPLE_BODY;
+  p.variables = playSampleVariables();
+  p.values = {};
+  for (const v of p.variables) p.values[v.name] = initialValue(v, {});
+  state.playSig = '';
+}
+
+/** 本文から変数を検出し直す。本文から消えた変数は残さない（F-62） */
+function syncPlay() {
+  const p = state.play;
+  syncVariables(p);
+  p.variables = p.variables.filter(v => !v.unused);
+  p.variables.forEach(v => { delete v._auto; });
+  const names = new Set(p.variables.map(v => v.name));
+  for (const v of p.variables) {
+    if (!hasOwn(p.values, v.name)) p.values[v.name] = initialValue(v, {});
+  }
+  for (const k of Object.keys(p.values)) if (!names.has(k)) delete p.values[k];
+}
+
+const playSignature = () => state.play.variables.slice().sort(byOrder).map(v => `${v.name}:${v.type}`).join('|');
+
+function renderPlay(force = false) {
+  const p = state.play;
+  const src = $('#playSrc');
+  if (src.value !== p.body) src.value = p.body;
+  syncPlay();
+  renderPlayWarnings();
+  const sig = playSignature();
+  if (force || sig !== state.playSig) {
+    state.playSig = sig;
+    renderPlayForm();
+  }
+  renderPlayPreview();
+  applyPlayTab();
+}
+
+function renderPlayWarnings() {
+  const box = $('#playWarnings');
+  const { invalid } = parseBody(state.play.body);
+  box.replaceChildren();
+  if (!invalid.length) return;
+  box.append(h('div', { class: 'warn-box', role: 'status' },
+    '次の記述は変数名のルールに合わないため、入力欄にしていません（使えるのは日本語・英数字・_ です）。',
+    h('ul', {}, invalid.slice(0, 5).map(s => h('li', {}, h('code', { text: s })))),
+    invalid.length > 5 ? `ほか${invalid.length - 5}件` : null));
+}
+
+function changePlayType(v, type) {
+  const p = state.play;
+  // 直前に入力していた文字は、なるべく新しい型に引き継ぐ（日付・チェックボックスの値は引き継がない）
+  const raw = p.values[v.name];
+  const prev = (v.type === 'date' || v.type === 'checkbox' || typeof raw !== 'string') ? '' : raw.trim();
+  v.type = type;
+  v.default = '';
+  v.options = {};
+  switch (type) {
+    case 'date':
+      v.default = 'today';
+      v.options.format = DEFAULT_DATE_FORMAT;
+      break;
+    case 'select':
+      v.options.choices = prev ? [prev] : [];
+      break;
+    case 'checkbox':
+      v.default = true;
+      v.options.onText = prev || v.name;
+      v.options.offText = '';
+      break;
+    default:
+      break;
+  }
+  // 入力値は値として引き継ぎ、初期値（テンプレート保存時に残る設定）にはしない（F-66）
+  let next = initialValue(v, {});
+  if (type === 'select' || type === 'text' || type === 'textarea') next = prev;
+  if (type === 'number' && /^-?\d+(\.\d+)?$/.test(prev)) next = prev;
+  p.values[v.name] = next;
+  renderPlay(true);
+}
+
+function playExtra(v) {
+  const o = v.options || {};
+  if (v.type === 'select') {
+    return h('label', { class: 'field-extra' },
+      h('span', { class: 'vlabel', text: '候補（1行に1つ）' }),
+      h('textarea', {
+        rows: 2, value: (Array.isArray(o.choices) ? o.choices : []).join('\n'),
+        onchange: e => {
+          v.options = { ...v.options, choices: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) };
+          const cur = str(state.play.values[v.name]);
+          if (!v.options.choices.includes(cur)) state.play.values[v.name] = v.options.choices[0] || '';
+          renderPlay(true);
+        },
+      }));
+  }
+  if (v.type === 'checkbox') {
+    return h('label', { class: 'field-extra' },
+      h('span', { class: 'vlabel', text: 'ONのときに入る文' }),
+      h('input', {
+        type: 'text', value: str(o.onText),
+        oninput: e => { v.options = { ...v.options, onText: e.target.value }; renderPlayPreview(); },
+      }));
+  }
+  return null;
+}
+
+function renderPlayForm() {
+  const p = state.play;
+  const form = $('#playForm');
+  form.replaceChildren();
+  const vars = p.variables.slice().sort(byOrder);
+  const tab = document.querySelector('#playTabs [data-ptab="form"]');
+  tab.textContent = vars.length ? `入力（${vars.length}）` : '入力';
+  if (!vars.length) {
+    form.append(h('p', { class: 'muted small', text: 'まだ入力欄がありません。貼り付けたプロンプトの中で、入力欄にしたい箇所を {{変数名}} と書いてみてください。' }));
+    return;
+  }
+  vars.forEach((v, i) => {
+    const typeSel = h('select', {
+      class: 'type-select', 'aria-label': `「${v.name}」の入力欄の種類`, value: v.type,
+      onchange: e => changePlayType(v, e.target.value),
+    }, TYPES.map(([val, lab]) => h('option', { value: val, text: lab })));
+    form.append(fieldFor(v, `p${i}`, {
+      values: p.values,
+      onChange: renderPlayPreview,
+      head: typeSel,
+      extra: playExtra(v),
+    }));
+  });
+}
+
+function playOutputSegs() {
+  return generate(state.play, state.play.values);
+}
+
+function renderPlayPreview() {
+  const segs = playOutputSegs();
+  const out = $('#playPreview');
+  if (!state.play.body.trim()) {
+    out.replaceChildren(h('span', { class: 'muted', text: '左の欄にプロンプトを貼り付けると、ここにできあがりが表示されます。' }));
+  } else {
+    out.replaceChildren(...segs.map(s => (s.t === 'var' && !s.filled
+      ? h('mark', { class: 'unfilled', text: s.v })
+      : document.createTextNode(s.v))));
+  }
+  const text = segsToText(segs);
+  $('#playCharCount').textContent = `${countChars(text).toLocaleString()}文字`;
+  const missing = [...new Set(segs.filter(s => s.t === 'var' && !s.filled).map(s => s.name))];
+  const empty = !state.play.body.trim();
+  $('#btnPlayCopy').disabled = empty;
+  $('#btnPlaySave').disabled = empty;
+  $('#playMissing').textContent = empty
+    ? ''
+    : missing.length
+      ? `未入力：${missing.join('、')}（このままコピーすると {{…}} のまま残ります）`
+      : 'すべて入力されました。コピーしてAIに貼り付けてみましょう。';
+}
+
+function applyPlayTab() {
+  const g = $('#playGrid');
+  for (const t of ['src', 'form', 'preview']) g.classList.toggle(`tab-${t}`, state.playTab === t);
+  for (const b of document.querySelectorAll('#playTabs [data-ptab]')) {
+    b.setAttribute('aria-selected', String(b.dataset.ptab === state.playTab));
+  }
+}
+
+async function doPlayCopy() {
+  if ($('#btnPlayCopy').disabled) return;
+  const text = segsToText(playOutputSegs());
+  // F-65：コピー履歴には記録しない
+  if (await writeClipboard(text)) toast('コピーしました');
+  else showManualCopy(text);
+}
+
+function saveFromPlay() {
+  const p = state.play;
+  if (!p.body.trim()) return;
+  syncPlay();
+  const vars = clone(p.variables).sort(byOrder).map((v, i) => ({ ...v, order: i + 1 }));
+  openEditor(null, { body: p.body, variables: vars });
+  toast('名前を付けて保存すると、マイテンプレートに追加されます', 'ok', 3500);
+}
+
+/* =========================================================
+ * 画面の切り替え（プレイグラウンド／マイテンプレート）
+ * ======================================================= */
+function goScreen(name) {
+  if (name === state.screen) return;
+  showScreen(name);
+  if (name === 'use') renderUse();
+  if (name === 'play') renderPlay();
 }
 
 /* =========================================================
@@ -1884,6 +2265,30 @@ function bindEvents() {
 
   for (const b of document.querySelectorAll('#mobileTabs [data-tab]')) {
     b.addEventListener('click', () => { state.mobileTab = b.dataset.tab; applyMobileTab(); });
+  }
+
+  for (const b of document.querySelectorAll('#screenTabs [data-screen]')) {
+    b.addEventListener('click', () => goScreen(b.dataset.screen));
+  }
+
+  // プレイグラウンド
+  $('#playSrc').addEventListener('input', e => { state.play.body = e.target.value; renderPlay(); });
+  $('#playForm').addEventListener('submit', e => e.preventDefault());
+  $('#btnPlayCopy').addEventListener('click', doPlayCopy);
+  $('#btnPlaySave').addEventListener('click', saveFromPlay);
+  $('#btnPlaySample').addEventListener('click', async () => {
+    if (state.play.body !== PLAY_SAMPLE_BODY && state.play.body.trim()
+      && !await confirmDialog('貼り付けた内容を消して、サンプルに戻します。', { ok: 'サンプルに戻す' })) return;
+    loadPlaySample();
+    renderPlay(true);
+  });
+  $('#btnPlayClear').addEventListener('click', () => {
+    state.play.body = '';
+    renderPlay();
+    $('#playSrc').focus();
+  });
+  for (const b of document.querySelectorAll('#playTabs [data-ptab]')) {
+    b.addEventListener('click', () => { state.playTab = b.dataset.ptab; applyPlayTab(); });
   }
 
   $('#form').addEventListener('submit', e => e.preventDefault());
@@ -1912,9 +2317,9 @@ function bindEvents() {
       closeDrawer();
       return;
     }
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && state.screen === 'use' && !$('#modal').open && !drawerOpen()) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && state.screen !== 'edit' && !$('#modal').open && !drawerOpen()) {
       e.preventDefault();
-      doCopy();
+      if (state.screen === 'play') doPlayCopy(); else doCopy();
     }
   });
 
@@ -1949,11 +2354,16 @@ function init() {
   loadState();
   applyTheme();
   bindEvents();
+  // マイテンプレート側は前回のテンプレートを開いておく（タブを切り替えたときにすぐ使えるように）
   const lastId = state.settings.lastTemplateId;
   const id = state.templates.some(t => t.id === lastId)
     ? lastId
     : (sortedTemplates()[0] ? sortedTemplates()[0].id : null);
   if (id) openTemplate(id); else renderUse();
+  // 起動時は毎回プレイグラウンド（4.3）。サンプル入りで開く
+  loadPlaySample();
+  showScreen('play');
+  renderPlay(true);
 }
 
 // テスト用に純粋関数を公開
