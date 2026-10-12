@@ -30,11 +30,27 @@ js/
     settings.js         設定・バックアップ
   navigation.js         画面の切り替え
   main.js               イベント登録と起動（最後に読み込む）
-docs/rrd.md             要件定義書
+docs/
+  rrd.md                要件定義書
+  basic-design.md       基本設計書
+  detailed-design.md    詳細設計書（処理の流れ）
+  function-reference.md 関数一覧
+CLAUDE.md               AIで改修するときのルール
 .nojekyll               GitHub PagesのJekyll処理を止める（{{ }} がLiquid構文として解釈されないように）
 ```
 
 スクリプトは ES Modules ではなく通常の `<script>` で順番に読み込んでいます。ローカルで `index.html` を直接開いた（file://）ときにも動かすためです。そのため `index.html` の `<script>` の順番は変えないでください。
+
+## ドキュメント
+
+| 文書 | 内容 |
+| --- | --- |
+| [要件定義書](docs/rrd.md) | 何を作るか（機能一覧・画面・データ） |
+| [基本設計書](docs/basic-design.md) | どう組み立てているか（ファイル構成・層・画面遷移・データ・設計判断） |
+| [詳細設計書](docs/detailed-design.md) | 処理の流れ（起動・解析・描画・コピー・保存・読み込み）と改修ガイド |
+| [関数一覧](docs/function-reference.md) | 全関数・定数の役割・引数・戻り値・呼び出し元 |
+
+コードを変えたら設計書も合わせて更新します（ルールは [CLAUDE.md](CLAUDE.md)）。
 
 ## GitHub Pagesでの公開
 
