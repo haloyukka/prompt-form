@@ -6,11 +6,35 @@
 
 ## 構成
 
-| パス | 内容 |
-| --- | --- |
-| `index.html` | ツール本体（HTML・CSS・JavaScriptを1ファイルにまとめたもの） |
-| `docs/rrd.md` | 要件定義書 |
-| `.nojekyll` | GitHub PagesのJekyll処理を止める（`{{ }}` がLiquid構文として解釈されないように） |
+ビルド工程はありません。`index.html` をブラウザで開くか、GitHub Pagesに置くだけで動きます。
+
+```
+index.html              画面の骨組み（HTML）
+css/style.css           スタイル（色は :root の変数で定義、ダークテーマも同じ変数で切り替え）
+assets/favicon.svg      アイコン
+js/
+  constants.js          定数（保存キー、入力欄の型など）
+  utils.js              汎用ヘルパー（DOM操作、日付の整形など）
+  storage.js            localStorage の読み書き
+  template.js           {{変数}} の解析とプロンプトの生成、読み込み時の正規化
+  state.js              画面全体で共有する状態
+  ui.js                 トースト・ダイアログ・ドロワー・テーマ
+  samples.js            サンプルデータ（X日記、プレイグラウンドのメール返信）
+  screens/
+    use.js              利用画面（マイテンプレート）
+    playground.js       プレイグラウンド
+    edit.js             編集画面
+  drawers/
+    templates.js        テンプレート一覧
+    history.js          コピー履歴
+    settings.js         設定・バックアップ
+  navigation.js         画面の切り替え
+  main.js               イベント登録と起動（最後に読み込む）
+docs/rrd.md             要件定義書
+.nojekyll               GitHub PagesのJekyll処理を止める（{{ }} がLiquid構文として解釈されないように）
+```
+
+スクリプトは ES Modules ではなく通常の `<script>` で順番に読み込んでいます。ローカルで `index.html` を直接開いた（file://）ときにも動かすためです。そのため `index.html` の `<script>` の順番は変えないでください。
 
 ## GitHub Pagesでの公開
 
